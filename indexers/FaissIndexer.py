@@ -1,4 +1,4 @@
-from interfaces import ANNIndexer
+from interfaces.ANNIndexer import ANNIndexer
 import faiss
 
 
@@ -18,11 +18,11 @@ class FaissIndexer(ANNIndexer):
     self.index.train(vectors)
     self.index.add_with_ids(vectors, content_vectors.ids())
 
-  def find_NN_by_id(self, query_id='', n=5):
+  def find_NN_by_id(self, query_id='', n=10):
     vector = self.vectors_map[query_id]
-    return self.find_NN_by_vector(vector.reshape(1, self.dims))
+    return self.find_NN_by_vector(vector.reshape(1, self.dims), n)
 
-  def find_NN_by_vector(self, query_vector=[], n=5):
+  def find_NN_by_vector(self, query_vector=[], n=10):
     return self.index.search(query_vector, n)[1][0]
 
   def add_to_index(self, vectors=[]):

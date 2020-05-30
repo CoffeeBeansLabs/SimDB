@@ -30,7 +30,14 @@ class ContentVectors:
     return self.content_vectors_df['vector'].keys().to_numpy()
 
   def get_content(self, ids=[]):
-    return self.content_vectors_df.loc[ids]['text'].to_dict()
+    sorted_result = []
+    similar_objects = self.content_vectors_df.reindex(ids)['content'].to_dict()
+    position = 1
+    for id in ids:
+      result_item = {'id': int(id), 'content': similar_objects[id], 'rank': position}
+      position = position + 1
+      sorted_result.append(result_item)
+    return sorted_result
 
   def size(self):
     return self.content_vectors_df.size

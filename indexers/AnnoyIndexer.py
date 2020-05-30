@@ -1,4 +1,4 @@
-from interfaces import ANNIndexer
+from interfaces.ANNIndexer import ANNIndexer
 import annoy
 
 
@@ -10,10 +10,10 @@ class AnnoyIndexer(ANNIndexer):
     self.n_trees = n_trees
     self.index = annoy.AnnoyIndex(vector_length)
 
-  def build_index(self, vectors=None, path=None):
+  def build_index(self, content_vectors=None, path=None):
     print("building index")
-    print("len of docvecs", vectors.size())
-    vectors_map = vectors.get_vectors_map()
+    print("len of docvecs", content_vectors.size())
+    vectors_map = content_vectors.get_vectors_map()
 
     for key in vectors_map:
       try:

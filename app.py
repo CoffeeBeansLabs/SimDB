@@ -3,6 +3,9 @@ from flask import Flask  # import flask
 from flask import request  # import flask
 from indexers.FaissIndexer import FaissIndexer
 from datamodel.ContentVectors import ContentVectors
+from indexers.NGTIndexer import NGTIndexer
+from indexers.AnnoyIndexer import AnnoyIndexer
+from flask import jsonify
 
 app = Flask(__name__)  # create an app instance
 
@@ -14,6 +17,7 @@ host = '0.0.0.0'
 debug = True
 # indexer = AnnoyIndexer(vector_length=100, n_trees=1000)
 indexer = FaissIndexer(dims=100, n_list=1024)
+# indexer = NGTIndexer(dims=100, epsilon=0.20,edge_size_for_search=50)
 contentVectors = ContentVectors()
 
 
@@ -28,8 +32,8 @@ def training():  # call method training
 @app.route("/api/v1/query", methods=['POST'])  # at the end point /
 def query():  # call method training
   rq = request.json
-  result = indexer.find_NN_by_id(int(rq.get("id")))
-  return contentVectors.get_content(result)
+  result = indexer.find_NN_by_id(int(rq.get("id")), 8)
+  return jsonify(contentVectors.get_content(result))
 
 
 if __name__ == "__main__":  # on running python app.py
