@@ -2,3 +2,5 @@ xarray
 faiss
 annoy
 pybind11
+pytorch
+torchvision

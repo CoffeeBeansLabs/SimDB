@@ -1,5 +1,6 @@
 class ANNIndexer:
 
+
   def build_index(self, vectors=None, path=None):
     raise Exception("build index not implemented")
 
