@@ -1,0 +1,61 @@
+{
+  "indexer": {
+    "default_dims": 100,
+    "default_nn": 10,
+    "indexer_name": "FAISS-IVF",
+    "indexer_impl_conf": {
+      "distance_metric": "L2",
+      "cluster.max_size": 1000,
+      "nprobe_ratio": "1"
+    },
+    "retrain_frequency_sec": "20"
+  },
+  "connectors": {
+    "reader": {},
+    "writer": {
+      "type": "redis",
+      "name": "redis_writer",
+      "mapper": "SIMS",
+      "additional_fields": [
+        "published_at"
+      ],
+      "connection": {
+        "mode": "standalone",
+        "standalone": {
+          "host": "localhost",
+          "port": "6379"
+        },
+        "cluster": [
+          {
+            "host": "172.17.0.1",
+            "port": "8005"
+          }
+        ]
+      }
+    }
+  },
+  "mappers": {
+    "content_obj": {
+      "name": "DEFAULT",
+      "standard_fields": {
+        "map": {
+          "id": "id",
+          "vector": "article_vector",
+          "content": "text",
+          "title": "title"
+        },
+        "exclude":["content"]
+      },
+      "other_fields": {
+        "select_fields": ["timestamp","author"],
+        "exclude_fields": []
+      }
+    },
+    "result": {
+      "name": "DEFAULT",
+      "additional_fields": [
+        "content","title","timestamp","author"
+      ]
+    }
+  }
+}

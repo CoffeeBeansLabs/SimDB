@@ -2,36 +2,37 @@
 from flask import Flask  # import flask
 from flask import request  # import flask
 
-from datamodel.ContentVectorsDB import ContentVectorsDB
-from datamodel.ContentVectorsDict import ContentVectorsDict
-from indexers.FaissIndexer import FaissIndexer
-from datamodel.ContentVectors import ContentVectors
-from indexers.NGTIndexer import NGTIndexer
-from indexers.AnnoyIndexer import AnnoyIndexer
 from flask import jsonify
 from vectorizers.img_to_vec import Img2Vec
 from util.ImageUtils import ImageUtils
+import time
+import atexit
+from settings.config import Config
+from factory import Factory
+
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)  # create an app instance
 img2vec = Img2Vec()
-# from services.Training import Training
-# from services.Testing import Testing
 
 port = 8082
 host = '0.0.0.0'
 debug = True
-# indexer = AnnoyIndexer(vector_length=100, n_trees=1000)
-indexer = FaissIndexer(dims=100, n_list=100, n_probe=5)
-# indexer = NGTIndexer(dims=100, epsilon=0.20,edge_size_for_search=50)
-# content_vectors = ContentVectors()
-content_vectors = ContentVectorsDict()
+
+config = Config()
+components_factory = Factory(config)
+
+indexer = components_factory.get_indexer()
+content_vectors = components_factory.get_content_vector_store()
+result_mapper = components_factory.get_result_mapper()
+
 image_utils = ImageUtils(img2vec)
 
 
 @app.route("/api/v1/train", methods=['POST'])  # at the end point /
 def training():  # call method training
-  content_vectors.load_csv('./assets/livemint-cv2.csv')
-  # content_vectors.load_json('./assets/july2020.json')
+  # content_vectors.load_csv('./assets/livemint-cv2.csv')
+  content_vectors.load_json('./assets/july2020.json')
   indexer.build_index(content_vectors)
   return "created indexes successfully"
 
@@ -39,9 +40,10 @@ def training():  # call method training
 @app.route("/api/v1/query", methods=['POST'])  # at the end point /
 def query():  # call method training
   rq = request.json
-  # result = indexer.find_NN_by_id(int(rq.get("id")), 8)
-  result = indexer.find_NN_by_id(rq.get("id"), 8)
-  response = jsonify(content_vectors.get_content(result, True))
+  default_nn = config.default_nn()
+  result = indexer.find_NN_by_id(rq.get("id"), default_nn)
+  is_string = (type(rq.get("id")) is str)
+  response = jsonify(result_mapper.map(result, is_string))
   response.headers.add('Access-Control-Allow-Origin', '*')
   return response
 
@@ -55,12 +57,23 @@ def vectorize_and_add():
   return "created indexes successfully"
 
 
-# @app.route("/api/v1/re-train", methods=['POST'])  # at the end point /
-# def training():  # call method training
-#   # colmap = {'id': 'id', 'content': 'content',}
-#   # content_vectors.load_csv('./assets/livemint-cv2.csv')
-#   indexer.build_index(content_vectors)
-#   return "created indexes successfully"
+@app.route("/api/v1/content-vectors", methods=['POST'])  # at the end point /
+def add_vectors():
+  content_list = request.json
+  content_vectors.add_content_vectors(content_list, requires_typecast=True)
+  return "created indexes successfully"
+
+
+def print_date_time():
+  print(time.strftime("%A, %d. %B %Y %I:%M:%S %p"))
+
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=indexer.build_index, trigger="interval", seconds=20)
+scheduler.start()
+
+# Shut down the scheduler when exiting the app
+atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == "__main__":  # on running python app.py
-  app.run(host=host, port=port, debug=debug)
+  app.run(host=host, port=port, debug=debug, use_reloader=False)

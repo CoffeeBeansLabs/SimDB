@@ -1,19 +1,20 @@
 from interfaces.ANNIndexer import ANNIndexer
 import annoy
 
-
+# Usage : indexer = AnnoyIndexer(vector_length=100, n_trees=1000)
 class AnnoyIndexer(ANNIndexer):
 
-  def __init__(self, vector_length=100, n_trees=10):
+  def __init__(self, content_vectors, vector_length=100, n_trees=10):
     print("initializing annoy wrapper")
     self.vector_length = vector_length
     self.n_trees = n_trees
     self.index = annoy.AnnoyIndex(vector_length)
+    self.content_vectors = content_vectors
 
-  def build_index(self, content_vectors=None, path=None):
+  def build_index(self, path=None):
     print("building index")
-    print("len of docvecs", content_vectors.size())
-    vectors_map = content_vectors.get_vectors_map()
+    print("len of docvecs", self.content_vectors.size())
+    vectors_map = self.content_vectors.get_vectors_map()
 
     for key in vectors_map:
       try:

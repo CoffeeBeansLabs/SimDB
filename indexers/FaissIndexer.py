@@ -1,21 +1,26 @@
 from interfaces.ANNIndexer import ANNIndexer
 import faiss
+import time
 
 
 class FaissIndexer(ANNIndexer):
 
-  def __init__(self, dims, n_list=256, n_probe=10):
-    self.n_list = n_list
-    self.dims = dims
-    quantizer = faiss.IndexFlatL2(self.dims)
-    self.index = faiss.IndexIVFFlat(quantizer, self.dims, self.n_list, faiss.METRIC_L2)
-    self.index.nprobe = n_probe
-    self.content_vectors = {}
-
-  def build_index(self, content_vectors=None, path=None):
-    print("Building IVF Flat index")
+  def __init__(self, content_vectors, dims, config):
     self.content_vectors = content_vectors
-    (ids, vectors) = content_vectors.get_ids_vectors_unzipped()
+    self.config = config
+    self.dims = dims
+    self.index = None
+
+  def build_index(self, path=None):
+    print("Building index..", self._print_date_time())
+
+    self.index = self._create_indexer()
+
+    if not self.index:
+      print("unable to create indexer ")
+      return
+
+    (ids, vectors) = self.content_vectors.get_ids_vectors_unzipped()
     print("type of list", type(vectors))
     print("type of item", type(vectors[0]))
     print("shape", vectors[0].shape)
@@ -25,12 +30,56 @@ class FaissIndexer(ANNIndexer):
     self.index.train(vectors)
     self.index.add_with_ids(vectors, ids)
 
+  def _create_indexer(self):
+    if self.content_vectors.is_empty():
+      print("content vectors are empty. Doing nothing ")
+      return None
+
+    cluster_size = self.config["cluster.max_size"]
+    new_n_list = int(self.content_vectors.count() / cluster_size)
+    n_list = new_n_list if new_n_list > 1 else 1
+    nprobe_ratio = self.config["nprobe_ratio"]
+    new_n_probe = int(n_list * nprobe_ratio)
+    n_probe = new_n_probe if new_n_probe > 1 else 1
+    # n_probe = n_list
+    quantizer = faiss.IndexFlatL2(self.dims)
+    index = faiss.IndexIVFFlat(quantizer, self.dims, n_list, faiss.METRIC_L2)
+    # index = faiss.IndexIDMap(quantizer)
+    # index.nprobe = n_probe
+    return index
+
+  '''
+  Result expected to follow this structure:
+  result = {
+    111: [22,44,666],
+    121: [545,232,2323]
+  }
+  '''
   def find_NN_by_id(self, query_id='', n=10):
     vector = self.content_vectors.get_vector_by_id(query_id)
-    return self.find_NN_by_vector(vector.reshape(1, self.dims), n)
+    nns = self.find_NN_by_vector(vector.reshape(1, self.dims), n)
+    result = {query_id: nns}
+    return result
+
+  def find_NN_by_ids(self, query_ids=[], n=10):
+    vectors = self.content_vectors.get_vectors_by_ids(query_ids)
+    result = self.find_NN_by_vector(vectors, n)
+    formatted_result = {}
+    position = 0
+    for id in query_ids:
+      formatted_result[id] = result[position]
+      position = position+1
+
+    return result
 
   def find_NN_by_vector(self, query_vector=[], n=10):
     return self.index.search(query_vector, n)[1][0]
+
+  def find_NN_by_vectors(self, query_vectors=[], n=10):
+    return self.index.search(query_vectors, n)[1]
+
+  def find_NN_for_all(self, n=10):
+    return self.find_NN_by_vectors(self.content_vectors.vectors())
 
   def add_to_index(self, vectors=[]):
     raise Exception("add_to_index not implemented")
@@ -43,3 +92,6 @@ class FaissIndexer(ANNIndexer):
 
   def load(self, path):
     raise Exception("load not implemented")
+
+  def _print_date_time(self):
+    print(time.strftime("%A, %d. %B %Y %I:%M:%S %p"))

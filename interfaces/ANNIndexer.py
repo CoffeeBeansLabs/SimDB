@@ -1,7 +1,7 @@
 class ANNIndexer:
 
 
-  def build_index(self, vectors=None, path=None):
+  def build_index(self, path=None):
     raise Exception("build index not implemented")
 
   def find_NN_by_id(self, query_id='', n=5):

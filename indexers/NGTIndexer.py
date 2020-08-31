@@ -1,6 +1,7 @@
 from interfaces.ANNIndexer import ANNIndexer
 import ngtpy
 
+# Usage : indexer = NGTIndexer(dims=100, epsilon=0.20,edge_size_for_search=50)
 
 class NGTIndexer(ANNIndexer):
   def __init__(self, dims, edge_size_for_search=40, epsilon=0.1):
