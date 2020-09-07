@@ -2,39 +2,55 @@ import json
 
 import numpy as np
 import csv
-from datamodel.mappers.content_obj_mapper import ContentMapper
+from mappers.content_obj_mapper import ContentMapper
 
 
 class ContentVectorsDict:
 
-  def __init__(self, mapper):
+  def __init__(self, mapper, reader=None):
     print("ContentVectorsDict initialized!")
     self._content = []
     self._content_id_idx = {}
     self._vectors = []
     self.mapper = mapper
+    self.reader = reader
 
-  def load_csv(self, path):
-    with open(path) as file:
-      reader = csv.DictReader(file)
-      self._build_data_structures(reader, True)
+  # def load_csv(self, path):
+  #   with open(path) as file:
+  #     reader = csv.DictReader(file)
+  #     self._build_data_structures(reader)
+  #
+  # def load_json(self, path):
+  #   with open(path) as file:
+  #     reader = (json.loads(line) for line in file)
+  #     self._build_data_structures(reader)
 
-  def load_json(self, path, requires_typecast=False):
-    with open(path) as file:
-      reader = (json.loads(line) for line in file)
-      self._build_data_structures(reader, requires_typecast)
+  def read(self):
+    print("\n-- reading content vectors --\n")
+    self.reader.read(self)
 
-  def _build_data_structures(self, content_list, requires_typecast=False):
+  def _build_data_structures(self, content_list):
     i = len(self._vectors)
     vectors = []
     for cv in content_list:
       mapped_cv = self.mapper.map(cv)
+      vector = self._extract_vector(mapped_cv)
+      # if self._content_id_idx.get(mapped_cv["id"]):
+      #   position = self._content_id_idx.get(mapped_cv["id"])
+      #   old_cv = self._content[position]
+      #   self._check_old_vs_new(self._content[position], mapped_cv)
+      #   # print("found existing key. Replacing existing content at position : ", position, " for key : ", mapped_cv["id"])
+      #   if len(self._vectors) > position:
+      #     # print("in self.vectors > position !!! ")
+      #     self._vectors[position] = vector
+      #   else:
+      #     v_pos = position - len(self._vectors)
+      #     vectors[v_pos] = vector
+      #   self._content[position] = mapped_cv
+      #   mapped_cv["seq_id"] = old_cv["seq_id"]
+      #   continue
+
       self._content_id_idx[(mapped_cv["id"])] = i
-      vector = mapped_cv["vector"]
-      if requires_typecast:
-        vector = np.fromstring(vector[1:-1], dtype=np.float32, sep=',')
-      else:
-        vector = np.float32(vector)
       vectors.append(vector)
       mapped_cv["seq_id"] = i
       self._content.append(mapped_cv)
@@ -47,8 +63,26 @@ class ContentVectorsDict:
     else:
       self._vectors = np.vstack((self._vectors, vectors))
 
-  def add_content_vectors(self, content_vectors, requires_typecast=False):
-    self._build_data_structures(content_vectors, requires_typecast)
+  def _check_old_vs_new(self, old_obj, new_obj):
+    self._check_field_equality("title", old_obj, new_obj, True)
+    self._check_field_equality("vector", old_obj, new_obj)
+
+  def _check_field_equality(self, field, old_obj, new_obj, print_val=False):
+    if old_obj[field] != new_obj[field]:
+      print("field value different for content id : ", new_obj["id"], " field is : ", field)
+      # if print_val:
+      print(" old : ", old_obj["title"], "  | new : ", new_obj["title"])
+
+  def _extract_vector(self, cv):
+    vector = cv["vector"]
+    if type(vector) is str:
+      vector = np.fromstring(vector[1:-1], dtype=np.float32, sep=',')
+    else:
+      vector = np.float32(vector)
+    return vector
+
+  def add_content_vectors(self, content_vectors):
+    self._build_data_structures(content_vectors)
 
   def vectors(self):
     return self._vectors
@@ -92,7 +126,7 @@ class ContentVectorsDict:
   def get_vectors_by_ids(self, content_ids):
     indices = [self._content_id_idx[id] for id in content_ids]
     vectors = [self._vectors[idx] for idx in indices]
-    return vectors
+    return np.stack(vectors)
 
   def get_content(self, ids=[]):
     sorted_result = []
@@ -116,3 +150,6 @@ class ContentVectorsDict:
 
   def get_content_obj_by_seqid(self, seqid):
     return self._content[seqid]
+
+  def get_all_ids(self):
+    return self._content_id_idx.keys()

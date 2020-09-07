@@ -12,7 +12,7 @@ class FaissIndexer(ANNIndexer):
     self.index = None
 
   def build_index(self, path=None):
-    print("Building index..", self._print_date_time())
+    print("Building index..")
 
     self.index = self._create_indexer()
 
@@ -63,14 +63,14 @@ class FaissIndexer(ANNIndexer):
 
   def find_NN_by_ids(self, query_ids=[], n=10):
     vectors = self.content_vectors.get_vectors_by_ids(query_ids)
-    result = self.find_NN_by_vector(vectors, n)
+    result = self.find_NN_by_vectors(vectors, n)
     formatted_result = {}
     position = 0
     for id in query_ids:
       formatted_result[id] = result[position]
       position = position+1
 
-    return result
+    return formatted_result
 
   def find_NN_by_vector(self, query_vector=[], n=10):
     return self.index.search(query_vector, n)[1][0]

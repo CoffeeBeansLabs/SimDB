@@ -42,16 +42,4 @@ class ContentMapper:
     dtos = [self.map(dto) for dto in dto_list]
     return dtos
 
-  @staticmethod
-  def to_result_dto(content_vector, rank, only_ids=False):
-    result = {}
-    if not only_ids:
-      result = copy.deepcopy(content_vector)
-      result["rank"] = rank
-      return result
 
-    result["id"] = content_vector.get("id"),
-    result["seq_id"] = content_vector.get("seq_id"),
-    result["rank"] = rank,
-    result["other_data"] = copy.deepcopy(content_vector.get("other_data"))
-    return result

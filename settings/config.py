@@ -45,3 +45,12 @@ class Config:
 
   def result_mapper_additional_fields(self):
     return self.config["mappers"]["result"]["additional_fields"]
+
+  def get_reader(self):
+    return self.config["connectors"]["reader"]
+
+  def is_streaming_reader(self):
+    return self.config["connectors"]["reader"]["stream"]
+
+  def get_writer(self):
+    return self.config["connectors"]["writer"]

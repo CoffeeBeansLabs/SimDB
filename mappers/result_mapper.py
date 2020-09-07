@@ -6,7 +6,9 @@ class ResultMapper:
 
   def map(self, results, from_seq=False):
     mapped_results = {}
-    for cid in results.keys():
+    results_keys = [*results]
+    from_seq = (type(results_keys[0]) is str)
+    for cid in results_keys:
       nn_ids = results[cid]
       mapped_nns = []
       position = 0

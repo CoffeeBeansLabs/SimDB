@@ -6,19 +6,34 @@
     "indexer_impl_conf": {
       "distance_metric": "L2",
       "cluster.max_size": 1000,
-      "nprobe_ratio": "1"
+      "nprobe_ratio": 1
     },
     "retrain_frequency_sec": "20"
   },
   "connectors": {
-    "reader": {},
+    "reader": {
+      "name": "kafka_reader",
+      "type": "kafka",
+      "connection": {
+        "settings": {
+          "bootstrap.servers": "localhost:9092",
+          "enable.auto.commit": true,
+          "group.id": "prod_faiss_dss_2408_0000001",
+          "auto.offset.reset": "earliest"
+        },
+        "topic": "article-events",
+        "polling_frequency": 0.5,
+        "max_none_messages": 2
+      },
+      "fetch_trigger_frequency": 20,
+      "stream": true
+    },
     "writer": {
       "type": "redis",
       "name": "redis_writer",
-      "mapper": "SIMS",
-      "additional_fields": [
-        "published_at"
-      ],
+      "mapper": "result",
+      "key_format": "130916:articleSimsIndexer:{0}",
+      "rank_field": "timestamp",
       "connection": {
         "mode": "standalone",
         "standalone": {
@@ -36,7 +51,7 @@
   },
   "mappers": {
     "content_obj": {
-      "name": "DEFAULT",
+        "name": "default_content_mapper",
       "standard_fields": {
         "map": {
           "id": "id",
@@ -44,17 +59,25 @@
           "content": "text",
           "title": "title"
         },
-        "exclude":["content"]
+        "exclude": [
+          "content"
+        ]
       },
       "other_fields": {
-        "select_fields": ["timestamp","author"],
+        "select_fields": [
+          "timestamp",
+          "author"
+        ],
         "exclude_fields": []
       }
     },
     "result": {
-      "name": "DEFAULT",
+      "name": "result",
       "additional_fields": [
-        "content","title","timestamp","author"
+        "title",
+        "seq_id",
+        "author",
+        "timestamp"
       ]
     }
   }

@@ -25,14 +25,14 @@ components_factory = Factory(config)
 indexer = components_factory.get_indexer()
 content_vectors = components_factory.get_content_vector_store()
 result_mapper = components_factory.get_result_mapper()
-
+writer = components_factory.get_writer()
 image_utils = ImageUtils(img2vec)
 
 
 @app.route("/api/v1/train", methods=['POST'])  # at the end point /
 def training():  # call method training
   # content_vectors.load_csv('./assets/livemint-cv2.csv')
-  content_vectors.load_json('./assets/july2020.json')
+  # content_vectors.load_json('./assets/july2020.json')
   indexer.build_index(content_vectors)
   return "created indexes successfully"
 
@@ -60,7 +60,7 @@ def vectorize_and_add():
 @app.route("/api/v1/content-vectors", methods=['POST'])  # at the end point /
 def add_vectors():
   content_list = request.json
-  content_vectors.add_content_vectors(content_list, requires_typecast=True)
+  content_vectors.add_content_vectors(content_list)
   return "created indexes successfully"
 
 
@@ -68,8 +68,19 @@ def print_date_time():
   print(time.strftime("%A, %d. %B %Y %I:%M:%S %p"))
 
 
+def reindex_and_export():
+  indexer.build_index()
+  ids = content_vectors.get_all_ids()
+  writer.write(ids, indexer)
+
+
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=indexer.build_index, trigger="interval", seconds=20)
+scheduler.add_job(name="reindex_and_export", func=reindex_and_export, trigger="interval", seconds=29)
+
+if not config.is_streaming_reader():
+  content_vectors.read()
+else:
+  scheduler.add_job(name="content_read", func=content_vectors.read, trigger="interval", seconds=19)
 scheduler.start()
 
 # Shut down the scheduler when exiting the app
