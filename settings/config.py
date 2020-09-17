@@ -47,10 +47,25 @@ class Config:
     return self.config["mappers"]["result"]["additional_fields"]
 
   def get_reader(self):
-    return self.config["connectors"]["reader"]
+    reader_name = self.config["app"]["reader"]
+    for reader in self.config["connectors"]["readers"]:
+      if reader["name"] == reader_name:
+        return reader
+    return None
 
   def is_streaming_reader(self):
-    return self.config["connectors"]["reader"]["stream"]
+    reader = self.get_reader()
+    return reader["stream"]
 
   def get_writer(self):
-    return self.config["connectors"]["writer"]
+    writer_name = self.config["app"]["writer"]
+    for writer in self.config["connectors"]["writers"]:
+      if writer["name"] == writer_name:
+        return writer
+    return None
+
+  def get_input_staging_key(self):
+    return self.config["app"]["input_staging"]
+
+  def get_app_config(self):
+    return self.config["app"]

@@ -8,7 +8,8 @@ from util.ImageUtils import ImageUtils
 import time
 import atexit
 from settings.config import Config
-from factory import Factory
+from settings.factory import Factory
+from orchestrator import Orchestrator
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -26,7 +27,10 @@ indexer = components_factory.get_indexer()
 content_vectors = components_factory.get_content_vector_store()
 result_mapper = components_factory.get_result_mapper()
 writer = components_factory.get_writer()
-image_utils = ImageUtils(img2vec)
+reader = components_factory.get_reader()
+global_store = components_factory.get_global_store()
+
+# image_utils = ImageUtils(img2vec)
 
 
 @app.route("/api/v1/train", methods=['POST'])  # at the end point /
@@ -64,27 +68,8 @@ def add_vectors():
   return "created indexes successfully"
 
 
-def print_date_time():
-  print(time.strftime("%A, %d. %B %Y %I:%M:%S %p"))
-
-
-def reindex_and_export():
-  indexer.build_index()
-  ids = content_vectors.get_all_ids()
-  writer.write(ids, indexer)
-
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(name="reindex_and_export", func=reindex_and_export, trigger="interval", seconds=29)
-
-if not config.is_streaming_reader():
-  content_vectors.read()
-else:
-  scheduler.add_job(name="content_read", func=content_vectors.read, trigger="interval", seconds=19)
-scheduler.start()
-
-# Shut down the scheduler when exiting the app
-atexit.register(lambda: scheduler.shutdown())
+orchestrator = Orchestrator(indexer, content_vectors, global_store, writer, reader, config)
+orchestrator.start()
 
 if __name__ == "__main__":  # on running python app.py
   app.run(host=host, port=port, debug=debug, use_reloader=False)

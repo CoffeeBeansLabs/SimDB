@@ -11,47 +11,64 @@
     "retrain_frequency_sec": "20"
   },
   "connectors": {
-    "reader": {
-      "name": "kafka_reader",
-      "type": "kafka",
-      "connection": {
-        "settings": {
-          "bootstrap.servers": "localhost:9092",
-          "enable.auto.commit": true,
-          "group.id": "prod_faiss_dss_2408_0000001",
-          "auto.offset.reset": "earliest"
+    "readers": [
+      {
+        "name": "kafka_reader",
+        "type": "kafka",
+        "connection": {
+          "settings": {
+            "bootstrap.servers": "localhost:9092",
+            "enable.auto.commit": true,
+            "group.id": "prod_faiss_dss_2408_0000001",
+            "auto.offset.reset": "earliest"
+          },
+          "topic": "article-events-2",
+          "polling_frequency": 0.5,
+          "max_none_messages": 2
         },
-        "topic": "article-events",
-        "polling_frequency": 0.5,
-        "max_none_messages": 2
+        "fetch_trigger_frequency": 20,
+        "stream": true,
+        "temp_output_buffer": "reader.kafka.buffer",
+        "update_method": "merge",
+        "mapper": "default_content_mapper"
       },
-      "fetch_trigger_frequency": 20,
-      "stream": true
-    },
-    "writer": {
-      "type": "redis",
-      "name": "redis_writer",
-      "mapper": "result",
-      "key_format": "130916:articleSimsIndexer:{0}",
-      "rank_field": "timestamp",
-      "connection": {
-        "mode": "standalone",
-        "standalone": {
-          "host": "localhost",
-          "port": "6379"
-        },
-        "cluster": [
-          {
-            "host": "172.17.0.1",
-            "port": "8005"
-          }
-        ]
+      {
+        "name": "file_reader",
+        "type": "file",
+        "format": "json",
+        "path": "./assets/july2020.json",
+        "stream": false,
+        "temp_output_buffer": "reader.file.buffer",
+        "update_method": "replace",
+        "mapper": "default_content_mapper"
       }
-    }
+    ],
+    "writers": [
+      {
+        "type": "redis",
+        "name": "redis_writer",
+        "mapper": "result",
+        "key_format": "130916:articleSimsIndexer:{0}",
+        "rank_field": "timestamp",
+        "connection": {
+          "mode": "standalone",
+          "standalone": {
+            "host": "localhost",
+            "port": "6379"
+          },
+          "cluster": [
+            {
+              "host": "172.17.0.1",
+              "port": "8005"
+            }
+          ]
+        }
+      }
+    ]
   },
   "mappers": {
     "content_obj": {
-        "name": "default_content_mapper",
+      "name": "default_content_mapper",
       "standard_fields": {
         "map": {
           "id": "id",
@@ -80,5 +97,19 @@
         "timestamp"
       ]
     }
+  },
+  "tasks": [
+    {
+      "name": "article-filter",
+      "order": "1",
+      "write_buffer_key": "task_article_filter",
+      "type": "pre-processing",
+      "module_name": ""
+    }
+  ],
+  "app": {
+    "reader": "file_reader",
+    "writer": "redis_writer",
+    "input_staging": "cv_staging"
   }
 }

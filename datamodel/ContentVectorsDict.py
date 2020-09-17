@@ -1,39 +1,39 @@
-import json
-
 import numpy as np
-import csv
+
 from mappers.content_obj_mapper import ContentMapper
 
 
 class ContentVectorsDict:
 
-  def __init__(self, mapper, reader=None):
+  def __init__(self, global_store, staging_key):
     print("ContentVectorsDict initialized!")
     self._content = []
     self._content_id_idx = {}
     self._vectors = []
-    self.mapper = mapper
-    self.reader = reader
+    self._global_store = global_store
+    self._staging_key = staging_key
 
-  # def load_csv(self, path):
-  #   with open(path) as file:
-  #     reader = csv.DictReader(file)
-  #     self._build_data_structures(reader)
-  #
-  # def load_json(self, path):
-  #   with open(path) as file:
-  #     reader = (json.loads(line) for line in file)
-  #     self._build_data_structures(reader)
-
-  def read(self):
+  def read(self, update_type="replace"):
     print("\n-- reading content vectors --\n")
-    self.reader.read(self)
+    content_list = self._global_store.pop(self._staging_key)
+    if not content_list:
+      print("content list is empty.. skipping build data structures")
+      return 0
+
+    if update_type == "replace":
+      self._content.clear()
+      self._content_id_idx.clear()
+      self._vectors.clear()
+
+    values = content_list.values()
+    self.add_content_vectors(values)
+    return len(values)
 
   def _build_data_structures(self, content_list):
     i = len(self._vectors)
     vectors = []
     for cv in content_list:
-      mapped_cv = self.mapper.map(cv)
+      mapped_cv = cv
       vector = self._extract_vector(mapped_cv)
       # if self._content_id_idx.get(mapped_cv["id"]):
       #   position = self._content_id_idx.get(mapped_cv["id"])
@@ -62,6 +62,8 @@ class ContentVectorsDict:
       self._vectors = vectors
     else:
       self._vectors = np.vstack((self._vectors, vectors))
+
+    print("<__ size of content indexes and vectors : ", len(self._content_id_idx), len(self._vectors), "__>")
 
   def _check_old_vs_new(self, old_obj, new_obj):
     self._check_field_equality("title", old_obj, new_obj, True)
@@ -127,17 +129,6 @@ class ContentVectorsDict:
     indices = [self._content_id_idx[id] for id in content_ids]
     vectors = [self._vectors[idx] for idx in indices]
     return np.stack(vectors)
-
-  def get_content(self, ids=[]):
-    sorted_result = []
-    position = 1
-
-    for id in ids:
-      content = self._content[self._content_id_idx[id]]
-      result_item = ContentMapper.to_result_dto(content, position)
-      position = position + 1
-      sorted_result.append(result_item)
-    return sorted_result
 
   def is_empty(self):
     return len(self.vectors()) == 0

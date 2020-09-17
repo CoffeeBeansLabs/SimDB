@@ -7,12 +7,14 @@ from indexers.NGTIndexer import NGTIndexer
 from connectors.kafka_reader import KafkaReader
 from connectors.file_reader import FileReader
 from connectors.redis_writer import RedisWriter
+from datamodel.global_store import GlobalStore
 
 
 class Factory:
   def __init__(self, config):
     self.config = config
     self.content_vector_store = None
+    self.global_store = None
 
   def get_indexer(self):
     indexer_name = self.config.indexer_name()
@@ -31,18 +33,21 @@ class Factory:
 
     return indexer
 
+  def get_global_store(self):
+    if self.global_store:
+      return self.global_store
+    self.global_store = GlobalStore()
+    self.global_store.add(self.config.get_input_staging_key(), {})
+    return self.global_store
+
   def get_content_vector_store(self):
     if self.content_vector_store:
       return self.content_vector_store
 
-    mapper_name = self.config.content_mapper_name()
-    mapper = {}
-    if mapper_name == 'default_content_mapper':
-      mapper = ContentMapper(self.config)
+    staging_key = self.config.get_input_staging_key()
+    global_store = self.get_global_store()
 
-    reader = self.get_reader()
-
-    self.content_vector_store = ContentVectorsDict(mapper, reader)
+    self.content_vector_store = ContentVectorsDict(global_store, staging_key)
     return self.content_vector_store
 
   def get_result_mapper(self):
@@ -52,13 +57,20 @@ class Factory:
 
   def get_reader(self):
     reader_conf = self.config.get_reader()
+    mapper_name = reader_conf.get("mapper", "default_content_mapper")
+    mapper = {}
+    reader_conf["input_staging"] = self.config.get_input_staging_key()
+    if mapper_name == 'default_content_mapper':
+      mapper = ContentMapper(self.config)
+
     if reader_conf["name"] == 'kafka_reader':
-      return KafkaReader(reader_conf)
+      print("creating Kafka reader..")
+      return KafkaReader(reader_conf, self.get_global_store(), mapper, None)
     if reader_conf["name"] == 'file_reader':
-      return FileReader(reader_conf)
+      print("creating File reader..")
+      return FileReader(reader_conf, self.get_global_store(), mapper, None)
 
   def get_logger(self):
-
     try:
       logger_config = utils.load_json(self.config.conf['LOGGER_CONF'])
     except Exception:
@@ -77,11 +89,16 @@ class Factory:
 
   def get_writer(self):
     writer_conf = self.config.get_writer()
+    if not writer_conf:
+      return None
+
     mapper = None
     writer = None
+
     if writer_conf["mapper"] == 'result':
       mapper = self.get_result_mapper()
     if writer_conf["name"] == "redis_writer":
       rank_field = writer_conf["rank_field"]
       writer = RedisWriter(writer_conf, mapper, rank_field)
+
     return writer

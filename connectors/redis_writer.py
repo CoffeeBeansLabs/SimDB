@@ -27,5 +27,5 @@ class RedisWriter:
       nns = mapped_results[cid]
       for nn in nns:
         value = {nn["id"]: nn[self.rank_field]}
-        print(" Adding the following results to redis ", key, " : ", value)
+        # print(" Adding the following results to redis ", key, " : ", value)
         self.redis_client.zadd(key, value)

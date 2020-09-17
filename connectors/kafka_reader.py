@@ -3,8 +3,11 @@ from confluent_kafka import Consumer
 
 
 class KafkaReader:
-  def __init__(self, config):
+  def __init__(self, config, global_store, mapper, next_task=None):
     conn_config = config["connection"]
+    self.next_task = next_task
+    self.global_store = global_store
+    self.mapper = mapper
     try:
       topics = [conn_config["topic"]]
       kafka_conf = conn_config['settings']
@@ -12,17 +15,32 @@ class KafkaReader:
       self.kafka_consumer.subscribe(topics)
       self.poll_freq = conn_config["polling_frequency"]
       self.max_none = conn_config["max_none_messages"]
+      self.temp_output_buffer = config["temp_output_buffer"]
+      self.staging_buffer = config["input_staging"]
+      self.update_method = config["update_method"]
       print('subscribed to kafka consumer')
     except Exception:
       raise Exception('Error in finding keys while initializing consumer')
 
-  def read(self, content_vector_store):
+  def _get_write_key(self):
+    if not self.next_task:
+      return self.staging_buffer
+    else:
+      return self.temp_output_buffer
+
+  def _map_messages(self, messages):
+    content_map = {}
+    for message in messages:
+      mapped_content = self.mapper.map(message)
+      content_map[mapped_content['id']] = mapped_content
+    return content_map
+
+  def read(self):
     """
         return latest article from the kafka
         :return:
         """
     print("reading from kafka")
-    # keep receiving msgs until you have 20 none or message error
     none_count = 0
     messages = []
     while True:
@@ -50,4 +68,5 @@ class KafkaReader:
 
     print("reading ", len(messages), " messages in this batch from kafka")
     if len(messages) > 0:
-      content_vector_store.add_content_vectors(messages)
+      content_map = self._map_messages(messages)
+      self.global_store.add(self._get_write_key(), content_map, self.update_method)
