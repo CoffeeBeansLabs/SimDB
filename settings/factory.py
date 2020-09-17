@@ -1,4 +1,4 @@
-from datamodel.ContentVectorsDict import ContentVectorsDict
+from datamodel.content_vectors_store import ContentVectorsStore
 from mappers.content_obj_mapper import ContentMapper
 from mappers.result_mapper import ResultMapper
 from indexers.AnnoyIndexer import AnnoyIndexer
@@ -47,7 +47,7 @@ class Factory:
     staging_key = self.config.get_input_staging_key()
     global_store = self.get_global_store()
 
-    self.content_vector_store = ContentVectorsDict(global_store, staging_key)
+    self.content_vector_store = ContentVectorsStore(global_store, staging_key)
     return self.content_vector_store
 
   def get_result_mapper(self):

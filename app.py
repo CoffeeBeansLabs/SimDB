@@ -1,17 +1,12 @@
 # app.py
 from flask import Flask  # import flask
+from flask import jsonify
 from flask import request  # import flask
 
-from flask import jsonify
-from vectorizers.img_to_vec import Img2Vec
-from util.ImageUtils import ImageUtils
-import time
-import atexit
+from orchestrator import Orchestrator
 from settings.config import Config
 from settings.factory import Factory
-from orchestrator import Orchestrator
-
-from apscheduler.schedulers.background import BackgroundScheduler
+from vectorizers.img_to_vec import Img2Vec
 
 app = Flask(__name__)  # create an app instance
 img2vec = Img2Vec()

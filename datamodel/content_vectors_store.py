@@ -1,9 +1,7 @@
 import numpy as np
 
-from mappers.content_obj_mapper import ContentMapper
 
-
-class ContentVectorsDict:
+class ContentVectorsStore:
 
   def __init__(self, global_store, staging_key):
     print("ContentVectorsDict initialized!")
