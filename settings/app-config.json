@@ -100,11 +100,25 @@
   },
   "tasks": [
     {
-      "name": "article-filter",
+      "name": "ArticleFilter",
       "order": "1",
-      "write_buffer_key": "task_article_filter",
       "type": "pre-processing",
-      "module_name": ""
+      "module_name": "tasks.article_filter_task",
+      "params": {
+        "connection": {
+          "mode": "standalone",
+          "standalone": {
+            "host": "localhost",
+            "port": "6379"
+          },
+          "cluster": [
+            {
+              "host": "172.17.0.1",
+              "port": "8005"
+            }
+          ]
+        }
+      }
     }
   ],
   "app": {

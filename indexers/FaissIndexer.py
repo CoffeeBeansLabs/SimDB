@@ -43,8 +43,8 @@ class FaissIndexer(ANNIndexer):
     n_probe = new_n_probe if new_n_probe > 1 else 1
     # n_probe = n_list
     quantizer = faiss.IndexFlatL2(self.dims)
-    index = faiss.IndexIVFFlat(quantizer, self.dims, n_list, faiss.METRIC_L2)
-    # index = faiss.IndexIDMap(quantizer)
+    # index = faiss.IndexIVFFlat(quantizer, self.dims, n_list, faiss.METRIC_L2)
+    index = faiss.IndexIDMap(quantizer)
     # index.nprobe = n_probe
     return index
 

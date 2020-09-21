@@ -3,12 +3,12 @@ class GlobalStore:
   def __init__(self):
     self.store = {}
 
-  def add(self, key, content, update_method='replace'):
+  def add(self, key, content, update_method='append'):
     if update_method == 'replace':
       self.store[key] = content
-    elif update_method == 'merge':
-      previous = self.store.get(key, {})
-      self.store[key] = {**previous, **content}
+    elif update_method == 'append':
+      previous = self.store.get(key, [])
+      self.store[key] = previous + content
     else:
       print("Update method not supported : ", update_method)
 

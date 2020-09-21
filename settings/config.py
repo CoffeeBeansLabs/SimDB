@@ -69,3 +69,7 @@ class Config:
 
   def get_app_config(self):
     return self.config["app"]
+
+  def get_tasks(self):
+    return self.config["tasks"]
+

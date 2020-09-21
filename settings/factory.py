@@ -8,6 +8,7 @@ from connectors.kafka_reader import KafkaReader
 from connectors.file_reader import FileReader
 from connectors.redis_writer import RedisWriter
 from datamodel.global_store import GlobalStore
+import importlib
 
 
 class Factory:
@@ -63,12 +64,28 @@ class Factory:
     if mapper_name == 'default_content_mapper':
       mapper = ContentMapper(self.config)
 
+    tasks = self.get_tasks()
+
     if reader_conf["name"] == 'kafka_reader':
       print("creating Kafka reader..")
-      return KafkaReader(reader_conf, self.get_global_store(), mapper, None)
+      return KafkaReader(reader_conf, self.get_global_store(), mapper, tasks)
     if reader_conf["name"] == 'file_reader':
       print("creating File reader..")
       return FileReader(reader_conf, self.get_global_store(), mapper, None)
+
+  def get_tasks(self):
+    tasks_config = self.config.get_tasks()
+    task_and_order = []
+    for task_config in tasks_config:
+      class_name = task_config["name"]
+      module_name = task_config["module"]
+      order = task_config["order"]
+      conf = task_config["params"]
+      task_class = getattr(importlib.import_module(module_name), class_name)
+      task = task_class(self.get_global_store(), conf)
+      task_and_order.append({"task": task, "order": order})
+    task_and_order.sort(key=lambda t: t.get("order"))
+    return [to["task"] for to in task_and_order]
 
   def get_logger(self):
     try:

@@ -3,9 +3,9 @@ from confluent_kafka import Consumer
 
 
 class KafkaReader:
-  def __init__(self, config, global_store, mapper, next_task=None):
+  def __init__(self, config, global_store, mapper, tasks=None):
     conn_config = config["connection"]
-    self.next_task = next_task
+    self.tasks = tasks
     self.global_store = global_store
     self.mapper = mapper
     try:
@@ -23,16 +23,18 @@ class KafkaReader:
       raise Exception('Error in finding keys while initializing consumer')
 
   def _get_write_key(self):
-    if not self.next_task:
-      return self.staging_buffer
-    else:
-      return self.temp_output_buffer
+    # if not self.next_task:
+    return self.staging_buffer
+
+  # else:
+  #   return self.temp_output_buffer
 
   def _map_messages(self, messages):
-    content_map = {}
+    content_map = []
     for message in messages:
       mapped_content = self.mapper.map(message)
-      content_map[mapped_content['id']] = mapped_content
+      # content_map[mapped_content['id']] = mapped_content
+      content_map.append(mapped_content)
     return content_map
 
   def read(self):
@@ -68,5 +70,7 @@ class KafkaReader:
 
     print("reading ", len(messages), " messages in this batch from kafka")
     if len(messages) > 0:
-      content_map = self._map_messages(messages)
-      self.global_store.add(self._get_write_key(), content_map, self.update_method)
+      content_list = self._map_messages(messages)
+      for task in self.tasks:
+        content_list = task.run(content_list)
+      self.global_store.add(self._get_write_key(), content_list, self.update_method)
