@@ -38,7 +38,7 @@ class Factory:
     if self.global_store:
       return self.global_store
     self.global_store = GlobalStore()
-    self.global_store.add(self.config.get_input_staging_key(), {})
+    self.global_store.add(self.config.get_input_staging_key(), [])
     return self.global_store
 
   def get_content_vector_store(self):
@@ -78,7 +78,7 @@ class Factory:
     task_and_order = []
     for task_config in tasks_config:
       class_name = task_config["name"]
-      module_name = task_config["module"]
+      module_name = task_config["module_name"]
       order = task_config["order"]
       conf = task_config["params"]
       task_class = getattr(importlib.import_module(module_name), class_name)

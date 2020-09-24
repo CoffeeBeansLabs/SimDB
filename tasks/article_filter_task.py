@@ -9,7 +9,9 @@ class ArticleFilter:
     self.global_store = global_store
 
   def run(self, content_list):
-    return self._remove_articles_wo_image(content_list)
+    print(" << Running article filter task for content size : ", len(content_list), " >>")
+    # return self._remove_articles_wo_image(content_list)
+    return content_list
 
   def _remove_articles_wo_image(self, articles_data):
     """

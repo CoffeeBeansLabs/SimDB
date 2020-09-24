@@ -22,14 +22,14 @@
             "group.id": "prod_faiss_dss_2408_0000001",
             "auto.offset.reset": "earliest"
           },
-          "topic": "article-events-2",
+          "topic": "article-events",
           "polling_frequency": 0.5,
           "max_none_messages": 2
         },
         "fetch_trigger_frequency": 20,
         "stream": true,
         "temp_output_buffer": "reader.kafka.buffer",
-        "update_method": "merge",
+        "update_method": "append",
         "mapper": "default_content_mapper"
       },
       {
@@ -72,13 +72,11 @@
       "standard_fields": {
         "map": {
           "id": "id",
-          "vector": "article_vector",
-          "content": "text",
+          "vector": "vector",
+          "content": "content",
           "title": "title"
         },
-        "exclude": [
-          "content"
-        ]
+        "exclude": []
       },
       "other_fields": {
         "select_fields": [
@@ -93,6 +91,7 @@
       "additional_fields": [
         "title",
         "seq_id",
+        "content",
         "author",
         "timestamp"
       ]
@@ -122,8 +121,8 @@
     }
   ],
   "app": {
-    "reader": "file_reader",
-    "writer": "redis_writer",
+    "reader": "kafka_reader",
+    "writer": null,
     "input_staging": "cv_staging"
   }
 }

@@ -13,7 +13,7 @@ class ContentVectorsStore:
 
   def read(self, update_type="replace"):
     print("\n-- reading content vectors --\n")
-    content_list = self._global_store.pop(self._staging_key)
+    content_list = self._global_store.get(self._staging_key)
     if not content_list:
       print("content list is empty.. skipping build data structures")
       return 0
@@ -23,9 +23,9 @@ class ContentVectorsStore:
       self._content_id_idx.clear()
       self._vectors.clear()
 
-    values = content_list.values()
-    self.add_content_vectors(values)
-    return len(values)
+    self.add_content_vectors(content_list)
+    self._global_store.pop(self._staging_key)
+    return len(content_list)
 
   def _build_data_structures(self, content_list):
     i = len(self._vectors)
