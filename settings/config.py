@@ -69,3 +69,7 @@ class Config:
 
   def get_app_config(self):
     return self.config["app"]
+
+  def get_reader_update_method(self):
+    reader = self.get_reader()
+    return reader["update_method"]
