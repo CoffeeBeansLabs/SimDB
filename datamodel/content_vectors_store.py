@@ -29,37 +29,21 @@ class ContentVectorsStore:
 
   def _build_data_structures(self, content_list):
     i = len(self._vectors)
-    vectors = []
     for cv in content_list:
-      mapped_cv = cv
-      vector = self._extract_vector(mapped_cv)
-      # if self._content_id_idx.get(mapped_cv["id"]):
-      #   position = self._content_id_idx.get(mapped_cv["id"])
-      #   old_cv = self._content[position]
-      #   self._check_old_vs_new(self._content[position], mapped_cv)
-      #   # print("found existing key. Replacing existing content at position : ", position, " for key : ", mapped_cv["id"])
-      #   if len(self._vectors) > position:
-      #     # print("in self.vectors > position !!! ")
-      #     self._vectors[position] = vector
-      #   else:
-      #     v_pos = position - len(self._vectors)
-      #     vectors[v_pos] = vector
-      #   self._content[position] = mapped_cv
-      #   mapped_cv["seq_id"] = old_cv["seq_id"]
-      #   continue
+      vector = self._extract_vector(cv)
+      if self._content_id_idx.get(cv["id"]):
+        position = self._content_id_idx.get(cv["id"])
+        old_cv = self._content[position]
+        self._vectors[position] = vector
+        cv["seq_id"] = old_cv["seq_id"]
+        self._content[position] = cv
+        continue
 
-      self._content_id_idx[(mapped_cv["id"])] = i
-      vectors.append(vector)
-      mapped_cv["seq_id"] = i
-      self._content.append(mapped_cv)
+      self._content_id_idx[(cv["id"])] = i
+      self._vectors.append(vector)
+      cv["seq_id"] = i
+      self._content.append(cv)
       i = i + 1
-
-    # !important. Needs to be a numpy array
-    vectors = np.stack(vectors)
-    if len(self._vectors) == 0:
-      self._vectors = vectors
-    else:
-      self._vectors = np.vstack((self._vectors, vectors))
 
     print("<__ size of content indexes and vectors : ", len(self._content_id_idx), len(self._vectors), "__>")
 
@@ -85,21 +69,14 @@ class ContentVectorsStore:
     self._build_data_structures(content_vectors)
 
   def vectors(self):
-    return self._vectors
+    return np.stack(self._vectors)
 
   def get_ids_vectors_unzipped(self, count=-1):
     size = len(self._vectors)
-    if count != -1:
-      size = count
-
     content_ids = []
-    vectors = []
-
     for i in range(size):
       content_ids.append(self._id_to_use(i))
-      vectors.append(self._vectors[i])
-
-    return np.asarray(content_ids), np.stack(vectors)
+    return np.asarray(content_ids), self.vectors()
 
   def get_ids_vectors(self, count=-1):
     content_vectors = []

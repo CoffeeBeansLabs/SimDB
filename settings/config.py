@@ -73,3 +73,6 @@ class Config:
   def get_tasks(self):
     return self.config["tasks"]
 
+  def get_reader_update_method(self):
+    reader = self.get_reader()
+    return reader["update_method"]

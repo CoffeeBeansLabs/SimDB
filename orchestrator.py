@@ -14,7 +14,8 @@ class Orchestrator:
     self.indexer = indexer
 
   def _reindex_and_export(self):
-    count = self.content_vector_store.read()
+    update_method = self.config.get_reader_update_method()
+    count = self.content_vector_store.read(update_method)
     if count == 0:
       print("No new messages read. Skipping reindex and export..")
       return

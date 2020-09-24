@@ -64,8 +64,13 @@ class KafkaReader:
       if type(msg) == bytes:
         msg = msg.decode('utf-8')
 
-      msg = json.loads(msg)
-      messages.append(msg)
+      try:
+        msg = json.loads(msg)
+        messages.append(msg)
+      except Exception as e:
+        print("Exception occurred while parsing message : ", msg)
+        print(e)
+
       # self.factory.logger.info('Number of articles fetched : {}'.format(len(latest_articles)))
 
     print("reading ", len(messages), " messages in this batch from kafka")
