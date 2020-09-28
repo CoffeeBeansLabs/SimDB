@@ -1,15 +1,18 @@
 import numpy as np
 
+from util.datetime_utils import get_age_in_secs
+
 
 class ContentVectorsStore:
 
-  def __init__(self, global_store, staging_key):
+  def __init__(self, global_store, staging_key, config=None):
     print("ContentVectorsDict initialized!")
-    self._content = []
+    self._content_list = []
     self._content_id_idx = {}
     self._vectors = []
     self._global_store = global_store
     self._staging_key = staging_key
+    self.config = config
 
   def read(self, update_type="replace"):
     print("\n-- reading content vectors --\n")
@@ -19,7 +22,7 @@ class ContentVectorsStore:
       return 0
 
     if update_type == "replace":
-      self._content.clear()
+      self._content_list.clear()
       self._content_id_idx.clear()
       self._vectors.clear()
 
@@ -33,29 +36,19 @@ class ContentVectorsStore:
       vector = self._extract_vector(cv)
       if self._content_id_idx.get(cv["id"]):
         position = self._content_id_idx.get(cv["id"])
-        old_cv = self._content[position]
+        old_cv = self._content_list[position]
         self._vectors[position] = vector
         cv["seq_id"] = old_cv["seq_id"]
-        self._content[position] = cv
+        self._content_list[position] = cv
         continue
 
       self._content_id_idx[(cv["id"])] = i
       self._vectors.append(vector)
       cv["seq_id"] = i
-      self._content.append(cv)
+      self._content_list.append(cv)
       i = i + 1
 
     print("<__ size of content indexes and vectors : ", len(self._content_id_idx), len(self._vectors), "__>")
-
-  def _check_old_vs_new(self, old_obj, new_obj):
-    self._check_field_equality("title", old_obj, new_obj, True)
-    self._check_field_equality("vector", old_obj, new_obj)
-
-  def _check_field_equality(self, field, old_obj, new_obj, print_val=False):
-    if old_obj[field] != new_obj[field]:
-      print("field value different for content id : ", new_obj["id"], " field is : ", field)
-      # if print_val:
-      print(" old : ", old_obj["title"], "  | new : ", new_obj["title"])
 
   def _extract_vector(self, cv):
     vector = cv["vector"]
@@ -64,6 +57,33 @@ class ContentVectorsStore:
     else:
       vector = np.float32(vector)
     return vector
+
+  def trim_expired_keys(self):
+    expired_keys = []
+    field = self.config["timestamp_field"]
+    validity = self.config["key_expire_duration_secs"]
+    new_content_list = []
+    new_content_id_idx = {}
+    new_vectors_list = []
+    i = 0
+
+    for content in self._content_list:
+      timestamp = content[field]
+      age = get_age_in_secs(timestamp)
+      if age > validity:
+        expired_keys.append(content["id"])
+        continue
+
+      new_content_list.append(content)
+      new_vectors_list.append(self._extract_vector(content))
+      new_content_id_idx[content["id"]] = i
+      content["seq_id"] = i
+      i += 1
+
+    self._content_list = new_content_list
+    self._vectors = new_vectors_list
+    self._content_id_idx = new_content_id_idx
+    print(len(expired_keys), " have expired")
 
   def add_content_vectors(self, content_vectors):
     self._build_data_structures(content_vectors)
@@ -91,10 +111,10 @@ class ContentVectorsStore:
     return content_vectors
 
   def _id_to_use(self, i):
-    if type(self._content[i]['id']) is str:
+    if type(self._content_list[i]['id']) is str:
       return i
 
-    return self._content[i]['id']
+    return self._content_list[i]['id']
 
   def get_vector_by_id(self, content_id):
     index = self._content_id_idx[content_id]
@@ -112,10 +132,10 @@ class ContentVectorsStore:
     return len(self.vectors())
 
   def get_content_obj_by_id(self, id):
-    return self._content[self._content_id_idx[id]]
+    return self._content_list[self._content_id_idx[id]]
 
   def get_content_obj_by_seqid(self, seqid):
-    return self._content[seqid]
+    return self._content_list[seqid]
 
   def get_all_ids(self):
     return self._content_id_idx.keys()

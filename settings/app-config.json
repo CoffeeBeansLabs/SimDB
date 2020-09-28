@@ -8,7 +8,15 @@
       "cluster.max_size": 1000,
       "nprobe_ratio": 1
     },
-    "retrain_frequency_sec": "20"
+    "retrain_frequency": {
+      "unit": "sec",
+      "offset": 10,
+      "interval": 20
+    },
+    "vector_store": {
+      "timestamp_field": "timestamp",
+      "key_expire_duration_secs": 7238000
+    }
   },
   "connectors": {
     "readers": [
@@ -26,7 +34,11 @@
           "polling_frequency": 0.5,
           "max_none_messages": 2
         },
-        "fetch_trigger_frequency": 20,
+        "fetch_trigger_frequency": {
+          "unit": "sec",
+          "offset": 2,
+          "interval": 20
+        },
         "stream": true,
         "temp_output_buffer": "reader.kafka.buffer",
         "update_method": "append",

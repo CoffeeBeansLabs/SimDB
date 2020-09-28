@@ -1,4 +1,5 @@
 import atexit
+from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -20,6 +21,7 @@ class Orchestrator:
       print("No new messages read. Skipping reindex and export..")
       return
 
+    self.content_vector_store.trim_expired_keys()
     self.indexer.build_index()
     ids = self.content_vector_store.get_all_ids()
     if self.writer:
@@ -28,13 +30,23 @@ class Orchestrator:
     else:
       print("No writer configured. Skipping export..")
 
+  def _add_job(self, scheduler, func, config, name):
+    if config["unit"] == "sec":
+      expression = str(config["offset"]) + "/" + str(config["interval"])
+      scheduler.add_job(name=name, func=func, trigger="cron", minute="*", second=expression)
+      return
+    if config["unit"] == "min":
+      expression = str(config["offset"]) + "/" + str(config["interval"])
+      scheduler.add_job(name=name, func=func, trigger="cron", hour="*", minute=expression)
+      return
+    raise Exception("Unrecognised unit : " + config["unit"] + " . Only 'min' and 'sec' supported.")
+
   def start(self):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(name="reindex_and_export", func=self._reindex_and_export, trigger="cron", minute="*", second=30)
-
+    self._add_job(scheduler, self._reindex_and_export, self.config.get_indexer_retrain_freq(), "reindex_and_export")
     if self.reader:
       if self.config.is_streaming_reader():
-        scheduler.add_job(name="content_read", func=self.reader.read, trigger="cron", minute="*", second=0)
+        self._add_job(scheduler, self.reader.read, self.config.get_reader_fetch_freq(), "content_read")
       else:
         self.reader.read()
 

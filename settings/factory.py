@@ -48,7 +48,8 @@ class Factory:
     staging_key = self.config.get_input_staging_key()
     global_store = self.get_global_store()
 
-    self.content_vector_store = ContentVectorsStore(global_store, staging_key)
+    conf = self.config.get_vector_store_config()
+    self.content_vector_store = ContentVectorsStore(global_store, staging_key, conf)
     return self.content_vector_store
 
   def get_result_mapper(self):

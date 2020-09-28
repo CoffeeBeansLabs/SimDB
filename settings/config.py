@@ -76,3 +76,13 @@ class Config:
   def get_reader_update_method(self):
     reader = self.get_reader()
     return reader["update_method"]
+
+  def get_vector_store_config(self):
+    return self.config["indexer"]["vector_store"]
+
+  def get_reader_fetch_freq(self):
+    reader = self.get_reader()
+    return reader["fetch_trigger_frequency"]
+
+  def get_indexer_retrain_freq(self):
+    return self.config["indexer"]["retrain_frequency"]
