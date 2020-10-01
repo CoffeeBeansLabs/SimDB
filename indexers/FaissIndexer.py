@@ -1,7 +1,7 @@
 from interfaces.ANNIndexer import ANNIndexer
 import faiss
 import time
-
+import numpy as np
 
 class FaissIndexer(ANNIndexer):
 
@@ -57,7 +57,7 @@ class FaissIndexer(ANNIndexer):
   '''
   def find_NN_by_id(self, query_id='', n=10):
     vector = self.content_vectors.get_vector_by_id(query_id)
-    nns = self.find_NN_by_vector(vector.reshape(1, self.dims), n)
+    nns = self.find_NN_by_vector(vector, n)
     result = {query_id: nns}
     return result
 
@@ -73,10 +73,20 @@ class FaissIndexer(ANNIndexer):
     return formatted_result
 
   def find_NN_by_vector(self, query_vector=[], n=10):
-    return self.index.search(query_vector, n)[1][0]
+    vector = self._extract_vector(query_vector)
+    return self.index.search(vector, n)[1][0]
 
   def find_NN_by_vectors(self, query_vectors=[], n=10):
-    return self.index.search(query_vectors, n)[1]
+    vectors = [self._extract_vector(vector) for vector in query_vectors]
+    return self.index.search(vectors, n)[1]
+
+  def _extract_vector(self, vector):
+    vector_as_np = None
+    if type(vector) is str:
+      vector_as_np = np.fromstring(vector[1:-1], dtype=np.float32, sep=',')
+    else:
+      vector_as_np = np.float32(vector)
+    return vector_as_np.reshape(1, self.dims)
 
   def find_NN_for_all(self, n=10):
     return self.find_NN_by_vectors(self.content_vectors.vectors())

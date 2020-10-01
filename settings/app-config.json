@@ -6,7 +6,7 @@
     "indexer_impl_conf": {
       "distance_metric": "L2",
       "cluster.max_size": 1000,
-      "nprobe_ratio": 1
+      "nprobe_ratio": 0.1
     },
     "retrain_frequency": {
       "unit": "sec",
@@ -14,7 +14,7 @@
       "interval": 20
     },
     "vector_store": {
-      "timestamp_field": "timestamp",
+      "timestamp_field": null,
       "key_expire_duration_secs": 7238000
     }
   },

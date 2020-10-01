@@ -40,20 +40,25 @@ def training():  # call method training
 def query():  # call method training
   rq = request.json
   default_nn = config.default_nn()
-  result = indexer.find_NN_by_id(rq.get("id"), default_nn)
-  is_string = (type(rq.get("id")) is str)
-  response = jsonify(result_mapper.map(result, is_string))
+  result = {}
+  if rq.get("id"):
+    result = indexer.find_NN_by_id(rq.get("id"), default_nn)
+  elif rq.get("vector"):
+    result = indexer.find_NN_by_vector(rq.get("vector"), default_nn)
+  else:
+    return "Bad request. Either 'id' or 'vector' should be present"
+  response = jsonify(result_mapper.map(result))
   response.headers.add('Access-Control-Allow-Origin', '*')
   return response
 
 
-@app.route("/api/v1/content", methods=['POST'])  # at the end point /
-def vectorize_and_add():
-  content_list = request.json
-  content_vector_list = image_utils.vectorize_images(content_list)
-  content_vectors.add_content_vectors(content_vector_list)
-  indexer.build_index(content_vectors)
-  return "created indexes successfully"
+# @app.route("/api/v1/content", methods=['POST'])  # at the end point /
+# def vectorize_and_add():
+#   content_list = request.json
+#   content_vector_list = image_utils.vectorize_images(content_list)
+#   content_vectors.add_content_vectors(content_vector_list)
+#   indexer.build_index(content_vectors)
+#   return "created indexes successfully"
 
 
 @app.route("/api/v1/content-vectors", methods=['POST'])  # at the end point /

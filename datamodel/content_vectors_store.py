@@ -61,6 +61,8 @@ class ContentVectorsStore:
   def trim_expired_keys(self):
     expired_keys = []
     field = self.config["timestamp_field"]
+    if not field:
+      return
     validity = self.config["key_expire_duration_secs"]
     new_content_list = []
     new_content_id_idx = {}
@@ -69,6 +71,8 @@ class ContentVectorsStore:
 
     for content in self._content_list:
       timestamp = content[field]
+      if not timestamp:
+        continue
       age = get_age_in_secs(timestamp)
       if age > validity:
         expired_keys.append(content["id"])
@@ -139,3 +143,9 @@ class ContentVectorsStore:
 
   def get_all_ids(self):
     return self._content_id_idx.keys()
+
+  def is_id_str(self):
+    content = self._content_list[0]
+    if not content:
+      return False
+    return type(content.get("id")) is str
