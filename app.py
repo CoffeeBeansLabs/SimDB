@@ -30,10 +30,8 @@ global_store = components_factory.get_global_store()
 
 @app.route("/api/v1/train", methods=['POST'])  # at the end point /
 def training():  # call method training
-  # content_vectors.load_csv('./assets/livemint-cv2.csv')
-  # content_vectors.load_json('./assets/july2020.json')
-  indexer.build_index(content_vectors)
-  return "created indexes successfully"
+    indexer.build_index(content_vectors)
+    return "created indexes successfully"
 
 
 @app.route("/api/v1/query", methods=['POST'])  # at the end point /
