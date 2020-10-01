@@ -6,10 +6,11 @@ from flask import request  # import flask
 from orchestrator import Orchestrator
 from settings.config import Config
 from settings.factory import Factory
-from vectorizers.img_to_vec import Img2Vec
+
+# from vectorizers.img_to_vec import Img2Vec
 
 app = Flask(__name__)  # create an app instance
-img2vec = Img2Vec()
+# img2vec = Img2Vec()
 
 port = 8082
 host = '0.0.0.0'
