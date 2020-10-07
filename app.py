@@ -6,10 +6,11 @@ from flask import request  # import flask
 from orchestrator import Orchestrator
 from settings.config import Config
 from settings.factory import Factory
-from vectorizers.img_to_vec import Img2Vec
+
+# from vectorizers.img_to_vec import Img2Vec
 
 app = Flask(__name__)  # create an app instance
-img2vec = Img2Vec()
+# img2vec = Img2Vec()
 
 port = 8082
 host = '0.0.0.0'
@@ -25,19 +26,19 @@ writer = components_factory.get_writer()
 reader = components_factory.get_reader()
 global_store = components_factory.get_global_store()
 
+
 # image_utils = ImageUtils(img2vec)
 
 
 @app.route("/api/v1/train", methods=['POST'])  # at the end point /
 def training():  # call method training
-  # content_vectors.load_csv('./assets/livemint-cv2.csv')
-  # content_vectors.load_json('./assets/july2020.json')
   indexer.build_index(content_vectors)
   return "created indexes successfully"
 
 
 @app.route("/api/v1/query", methods=['POST'])  # at the end point /
 def query():  # call method training
+
   rq = request.json
   default_nn = config.default_nn()
   result = {}

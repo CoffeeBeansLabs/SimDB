@@ -3,6 +3,7 @@ import faiss
 import time
 import numpy as np
 
+
 class FaissIndexer(ANNIndexer):
 
   def __init__(self, content_vectors, dims, config):
@@ -55,6 +56,7 @@ class FaissIndexer(ANNIndexer):
     121: [545,232,2323]
   }
   '''
+
   def find_NN_by_id(self, query_id='', n=10):
     vector = self.content_vectors.get_vector_by_id(query_id)
     nns = self.find_NN_by_vector(vector, n)
@@ -68,7 +70,7 @@ class FaissIndexer(ANNIndexer):
     position = 0
     for id in query_ids:
       formatted_result[id] = result[position]
-      position = position+1
+      position = position + 1
 
     return formatted_result
 

@@ -3,7 +3,7 @@ from mappers.content_obj_mapper import ContentMapper
 from mappers.result_mapper import ResultMapper
 from indexers.AnnoyIndexer import AnnoyIndexer
 from indexers.FaissIndexer import FaissIndexer
-from indexers.NGTIndexer import NGTIndexer
+# from indexers.NGTIndexer import NGTIndexer
 from connectors.kafka_reader import KafkaReader
 from connectors.file_reader import FileReader
 from connectors.redis_writer import RedisWriter
