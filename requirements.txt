@@ -2,7 +2,7 @@ annoy==1.17.0
 APScheduler==3.6.3
 confluent-kafka==1.4.2
 enum34==1.1.10
-faiss==1.5.3
+#faiss==1.5.3
 Flask==1.1.2
 Flask-APScheduler==1.11.0
 funcsigs==1.0.2
