@@ -70,8 +70,8 @@
           },
           "cluster": [
             {
-              "host": "172.17.0.1",
-              "port": "8005"
+              "host": "redis-redis-cluster.prod.svc.cluster.local",
+              "port": "6379"
             }
           ]
         }
@@ -124,8 +124,8 @@
           },
           "cluster": [
             {
-              "host": "172.17.0.1",
-              "port": "8005"
+              "host": "redis-redis-cluster.prod.svc.cluster.local",
+              "port": "6379"
             }
           ]
         }
