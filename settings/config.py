@@ -87,5 +87,4 @@ class Config:
   def get_indexer_retrain_freq(self):
     return self.config["indexer"]["retrain_frequency"]
 
-  def get_consumer_group_mode(self):
-    return self.config["mode"]["consumer_group_mode"]
+

@@ -127,7 +127,7 @@ class Factory:
 
   def get_consumer_group_id(self, reader_conf):
     try:
-      if self.config.get_consumer_group_mode() == "hostname":
+      if reader_conf["consumer_group_mode"] == "hostname":
         # todo: need to log the exception
 
         consumer = os.environ["HOSTNAME"]
