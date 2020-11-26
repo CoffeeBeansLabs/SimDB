@@ -10,6 +10,8 @@ from connectors.redis_writer import RedisWriter
 from datamodel.global_store import GlobalStore
 import importlib
 
+import os
+
 
 class Factory:
   def __init__(self, config):
@@ -69,6 +71,8 @@ class Factory:
 
     if reader_conf["name"] == 'kafka_reader':
       print("creating Kafka reader..")
+      reader_conf["connection"]["settings"]["group.id"] = self.get_consumer_group_id(reader_conf)
+
       return KafkaReader(reader_conf, self.get_global_store(), mapper, tasks)
     if reader_conf["name"] == 'file_reader':
       print("creating File reader..")
@@ -120,3 +124,16 @@ class Factory:
       writer = RedisWriter(writer_conf, mapper, rank_field)
 
     return writer
+
+  def get_consumer_group_id(self, reader_conf):
+    try:
+      if reader_conf["consumer_group_mode"] == "hostname":
+        # todo: need to log the exception
+
+        consumer = os.environ["HOSTNAME"]
+        print("consumer = ", consumer)
+    except Exception as e:
+      print("Exception", e)
+
+    return reader_conf["connection"]["settings"]["group.id"]
+

@@ -86,3 +86,5 @@ class Config:
 
   def get_indexer_retrain_freq(self):
     return self.config["indexer"]["retrain_frequency"]
+
+

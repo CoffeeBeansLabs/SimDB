@@ -40,17 +40,18 @@ def training():  # call method training
 def query():  # call method training
 
   rq = request.json
-  result = {}
 
   if "n" in rq:
     nn_article_count = rq["n"]
   else:
     nn_article_count = config.default_nn()
 
-  if rq.get("id"):
-    result = indexer.find_NN_by_id(rq.get("id"), nn_article_count)
-  elif rq.get("vector"):
+  if rq.get("vector"):
     result = indexer.find_NN_by_vector(rq.get("vector"), nn_article_count)
+
+  elif rq.get("id"):
+    result = indexer.find_NN_by_id(rq.get("id"), nn_article_count)
+
   else:
     return "Bad request. Either 'id' or 'vector' should be present"
   response = jsonify(result_mapper.map(result))

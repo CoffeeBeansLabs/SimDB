@@ -19,7 +19,8 @@ class KafkaReader:
       self.staging_buffer = config["input_staging"]
       self.update_method = config["update_method"]
       print('subscribed to kafka consumer')
-    except Exception:
+    except Exception as e:
+      print("exception = ", e)
       raise Exception('Error in finding keys while initializing consumer')
 
   def _get_write_key(self):
