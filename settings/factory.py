@@ -132,6 +132,7 @@ class Factory:
 
         consumer = os.environ["HOSTNAME"]
         print("consumer = ", consumer)
+        return consumer
     except Exception as e:
       print("Exception", e)
 
