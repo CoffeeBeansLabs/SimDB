@@ -73,7 +73,7 @@ class KafkaReader:
 
         print("reading batch: ", len(messages), " messages in this batch from kafka")
 
-        if len(messages) => 20:
+        if len(messages) >= 20:
           content_list = self._map_messages(messages)
           for task in self.tasks:
             content_list = task.run(content_list)
