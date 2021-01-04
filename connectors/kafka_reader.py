@@ -1,5 +1,6 @@
 import json
 from confluent_kafka import Consumer
+from datetime import datetime
 
 
 class KafkaReader:
@@ -66,14 +67,27 @@ class KafkaReader:
 
       try:
         msg = json.loads(msg)
+        print("message timestamp: ", str(datetime.fromtimestamp(msg["updated_time"])))
         messages.append(msg)
+
+
+        print("reading batch: ", len(messages), " messages in this batch from kafka")
+
+        if len(messages) => 20:
+          content_list = self._map_messages(messages)
+          for task in self.tasks:
+            content_list = task.run(content_list)
+          self.global_store.add(self._get_write_key(), content_list, self.update_method)
+          messages = []
+
       except Exception as e:
         print("Exception occurred while parsing message : ", msg)
         print(e)
 
       # self.factory.logger.info('Number of articles fetched : {}'.format(len(latest_articles)))
 
-    print("reading ", len(messages), " messages in this batch from kafka")
+    print("reading final batch: ", len(messages), " messages in this batch from kafka")
+
     if len(messages) > 0:
       content_list = self._map_messages(messages)
       for task in self.tasks:
