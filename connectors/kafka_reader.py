@@ -11,7 +11,9 @@ class KafkaReader:
     self.mapper = mapper
     try:
       topics = [conn_config["topic"]]
+      print("kafka topic", topics)
       kafka_conf = conn_config['settings']
+      print("kafka config", kafka_conf)
       self.kafka_consumer = Consumer(kafka_conf)
       self.kafka_consumer.subscribe(topics)
       self.poll_freq = conn_config["polling_frequency"]

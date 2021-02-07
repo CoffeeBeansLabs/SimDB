@@ -6,7 +6,7 @@ class Config:
 
   def __init__(self):
     print("\nCWD : ", os.getcwd())
-    with open('./settings/app-config.json') as file:
+    with open('./settings/app-config/app-config.json') as file:
       self.config = json.load(file)
 
   def indexer_impl_config(self):
