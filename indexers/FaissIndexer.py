@@ -80,7 +80,11 @@ class FaissIndexer(ANNIndexer):
 
   def find_NN_by_vectors(self, query_vectors=[], n=10):
     vectors = [self._extract_vector(vector) for vector in query_vectors]
-    return self.index.search(vectors, n)[1]
+    # converted lists to numpy array
+    np_vectors = np.asarray(vectors)
+    reshape_vectors = np_vectors.reshape(np_vectors.shape[0],
+                                         np_vectors.shape(-1))
+    return self.index.search(reshape_vectors, n)[1]
 
   def _extract_vector(self, vector):
     vector_as_np = None
