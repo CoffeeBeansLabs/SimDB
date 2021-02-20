@@ -83,7 +83,7 @@ class FaissIndexer(ANNIndexer):
     # converted lists to numpy array
     np_vectors = np.asarray(vectors)
     reshape_vectors = np_vectors.reshape(np_vectors.shape[0],
-                                         np_vectors.shape(-1))
+                                         np_vectors.shape[-1])
     return self.index.search(reshape_vectors, n)[1]
 
   def _extract_vector(self, vector):
