@@ -24,6 +24,8 @@ class RedisWriter:
     mapped_results = self.mapper.map(results)
     for cid in mapped_results.keys():
       key = self.key_format.format(cid)
+      # delete keys before updating
+      self.redis_client.delete(key)
       nns = mapped_results[cid]
       for nn in nns:
         value = {nn["id"]: nn[self.rank_field]}
