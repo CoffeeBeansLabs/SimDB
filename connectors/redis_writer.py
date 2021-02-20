@@ -11,7 +11,9 @@ class RedisWriter:
     if config['connection']['mode'] == 'cluster':
       startup_nodes = config['node_addresses']
       print(startup_nodes)
-      self.redis_client = RedisCluster(startup_nodes=startup_nodes, decode_responses=True)
+      self.redis_client = RedisCluster(startup_nodes=startup_nodes,
+                                       decode_responses=True,
+                                       skip_full_coverage_check=True)
     else:
       host = config["connection"]['standalone']['host']
       port = config["connection"]['standalone']['port']
