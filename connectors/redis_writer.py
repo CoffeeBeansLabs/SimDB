@@ -9,7 +9,7 @@ class RedisWriter:
     self.rank_field = rank_field
 
     if config['connection']['mode'] == 'cluster':
-      startup_nodes = config['cluster']
+      startup_nodes = config['connection']['cluster']
       print(startup_nodes)
       self.redis_client = RedisCluster(startup_nodes=startup_nodes,
                                        decode_responses=True,
