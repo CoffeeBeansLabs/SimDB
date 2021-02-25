@@ -20,6 +20,7 @@ class RedisWriter:
       self.redis_client = redis.StrictRedis(host=host, port=port, db=0, decode_responses=True)
 
     self.key_format = config["key_format"]
+    self.key_expire_secs = config["key_expire_secs"]
 
   def write(self, ids, indexer):
     results = indexer.find_NN_by_ids(ids)
@@ -32,4 +33,6 @@ class RedisWriter:
       for nn in nns:
         value = {nn["id"]: nn[self.rank_field]}
         # print(" Adding the following results to redis ", key, " : ", value)
+        # expire key
+        self.redis_client.expire(key, self.key_expire_secs)
         self.redis_client.zadd(key, value)
