@@ -61,6 +61,7 @@
         "name": "redis_writer",
         "mapper": "result",
         "key_format": "130916:articleSimsIndexer:{0}",
+        "key_expire_secs": 604800,
         "rank_field": "timestamp",
         "connection": {
           "mode": "standalone",
