@@ -26,7 +26,7 @@ class Factory:
     dims = self.config.default_dims()
     indexer_config = self.config.indexer_impl_config()
     if indexer_name == 'FAISS-IVF':
-      indexer = FaissIndexer(content_vectors, dims=100, config=indexer_config)
+      indexer = FaissIndexer(content_vectors, dims=dims, config=indexer_config)
 
     elif indexer_name == 'ANNOY':
       indexer = AnnoyIndexer(vector_length=dims, config=indexer_config)
