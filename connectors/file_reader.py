@@ -20,10 +20,11 @@ class FileReader:
       return self.temp_output_buffer
 
   def _map_messages(self, messages):
-    content_map = {}
+    content_map = []
     for message in messages:
       mapped_content = self.mapper.map(message)
-      content_map[mapped_content['id']] = mapped_content
+      content_map.append(mapped_content)
+
     return content_map
 
   def read(self):
