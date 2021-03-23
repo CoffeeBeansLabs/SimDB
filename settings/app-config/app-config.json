@@ -1,6 +1,6 @@
 {
   "indexer": {
-    "default_dims": 768,
+    "default_dims": 100,
     "default_nn": 10,
     "indexer_name": "FAISS-IVF",
     "indexer_impl_conf": {
@@ -48,7 +48,7 @@
         "name": "file_reader",
         "type": "file",
         "format": "json",
-        "path": "/app/simsdb_recipes.json",
+        "path": "./assets/july2020.json",
         "stream": false,
         "temp_output_buffer": "reader.file.buffer",
         "update_method": "replace",
@@ -61,6 +61,7 @@
         "name": "redis_writer",
         "mapper": "result",
         "key_format": "130916:articleSimsIndexer:{0}",
+        "key_expire_secs": 604800,
         "rank_field": "timestamp",
         "connection": {
           "mode": "standalone",
@@ -83,9 +84,9 @@
       "name": "default_content_mapper",
       "standard_fields": {
         "map": {
-          "id": "index",
+          "id": "id",
           "vector": "vector",
-          "content": "description",
+          "content": "content",
           "title": "title"
         },
         "exclude": []
@@ -93,7 +94,7 @@
       "other_fields": {
         "select_fields": [
           "timestamp",
-          "_id"
+          "author"
         ],
         "exclude_fields": []
       }
@@ -101,7 +102,11 @@
     "result": {
       "name": "result",
       "additional_fields": [
-        "_id"
+        "title",
+        "seq_id",
+        "content",
+        "author",
+        "timestamp"
       ]
     }
   },
@@ -129,7 +134,7 @@
     }
   ],
   "app": {
-    "reader": "file_reader",
+    "reader": "kafka_reader",
     "writer": null,
     "input_staging": "cv_staging"
   }
