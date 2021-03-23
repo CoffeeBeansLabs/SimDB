@@ -48,13 +48,23 @@ def query():  # call method training
 
   if rq.get("vector"):
     result = indexer.find_NN_by_vector(rq.get("vector"), nn_article_count)
+    result = result_mapper.map(result)
 
-  elif rq.get("id"):
-    result = indexer.find_NN_by_id(rq.get("id"), nn_article_count)
+  elif "id" in rq:
+    ids = rq.get("id")
+    results = []
+
+    for id in ids:
+      result = indexer.find_NN_by_id(id, nn_article_count)
+      results.append(result)
+
+    result = [result_mapper.map(i) for i in results]
+    result = {key: val for i in result for key, val in i.items()}
 
   else:
     return "Bad request. Either 'id' or 'vector' should be present"
-  response = jsonify(result_mapper.map(result))
+
+  response = jsonify(result)
   response.headers.add('Access-Control-Allow-Origin', '*')
   return response
 
